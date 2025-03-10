@@ -1,10 +1,6 @@
 # Akula
 
-Akula is a command-line interface for interacting with the BF Repo Akula bot, a Telegram bot for searching and retrieving stealer log data.
-
-## Overview
-
-Akula provides a convenient way to search for and retrieve information from the Akula Telegram bot. It handles authentication, message sending, and response parsing, allowing you to quickly access the data you need.
+Akula provides a convenient cli to search for and retrieve stealer log data from the Akula Telegram bot. It handles authentication, message sending, and response parsing, allowing you to quickly access the data you need.
 
 ## Installation
 
