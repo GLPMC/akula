@@ -65,7 +65,7 @@ func SetVerbose(verbose bool) {
 	IsVerbose = verbose
 }
 
-func VerbosePrintf(format string, a ...interface{}) {
+func VerbosePrintf(format string, a ...any) {
 	if IsVerbose {
 		fmt.Printf(format, a...)
 	}
@@ -74,15 +74,12 @@ func VerbosePrintf(format string, a ...interface{}) {
 func NewClient(cfg *config.Config) (*Client, error) {
 	sessionStorage := createSessionStorage()
 	
-	// Initialize hasSession flag
 	hasSession := false
 
-	// Check for AKULA_SESSION environment variable
 	if os.Getenv("AKULA_SESSION") != "" {
 		hasSession = true
 		VerbosePrintf("Using session from AKULA_SESSION environment variable\n")
 	} else {
-		// Check for existing session file
 		sessionPath := config.GetSessionPath()
 		if _, err := os.Stat(sessionPath); err == nil {
 			data, err := os.ReadFile(sessionPath)
@@ -96,19 +93,16 @@ func NewClient(cfg *config.Config) (*Client, error) {
 		}
 	}
 
-	// Set API ID and hash values
 	var apiID int
 	var apiHash string
 	
-	// If we have a session, we can use actual placeholder values
-	// The gotd/td library requires these parameters but won't use them for auth with an existing session
+	// if we have a session we can use actual placeholder values
+	// the gotd/td library requires these parameters along with session file even if the tgapi stuff is wrong
 	if hasSession {
-		// Use placeholder values when a session exists
-		apiID = 1           // Placeholder API ID
-		apiHash = "abcdef"  // Placeholder API hash
+		apiID = 1           // placeholder api id
+		apiHash = "abcdef"  // placeholder api hash
 		VerbosePrintf("Using existing session for authentication (with placeholder API credentials)\n")
 	} else {
-		// When no session exists, we need the real API credentials
 		apiID = cfg.TGAPIID
 		apiHash = cfg.TGAPIHash
 		VerbosePrintf("No existing session found, will authenticate with API ID and hash\n")

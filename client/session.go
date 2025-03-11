@@ -66,7 +66,7 @@ func createSessionStorage() session.Storage {
 	if _, err := os.Stat(config.GetSessionPath()); os.IsNotExist(err) {
 		fmt.Println("Session file does not exist, will create a new one")
 	} else {
-		fmt.Println("Found existing session file")
+		VerbosePrintf("Found existing session file")
 	}
 
 	return sessionStorage
