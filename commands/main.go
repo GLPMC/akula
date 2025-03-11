@@ -4,7 +4,9 @@ import (
 	"akula/client"
 	"akula/config"
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -43,7 +45,7 @@ func Execute() error {
 }
 
 // verbosePrintf prints a message only if verbose mode is enabled
-func verbosePrintf(format string, a ...interface{}) {
+func verbosePrintf(format string, a ...any) {
 	if verbose {
 		fmt.Printf(format, a...)
 	}
@@ -92,11 +94,38 @@ func runSearch(cmd *cobra.Command, args []string) error {
 		cfg.PhoneNumber = phoneNumber
 	}
 
-	if cfg.TGAPIID == 0 || cfg.TGAPIHash == "" || cfg.PhoneNumber == "" {
+	sessionExists := false
+	if os.Getenv("AKULA_SESSION") != "" {
+		verbosePrintf("AKULA_SESSION environment variable is set, skipping Telegram API credentials prompt\n")
+		sessionExists = true
+	} else {
+		sessionPath := config.GetSessionPath()
+		if _, err := os.Stat(sessionPath); err == nil {
+
+			// validate session
+			data, err := os.ReadFile(sessionPath)
+			if err == nil && len(data) > 10 {
+				var jsonObj any
+				if err := json.Unmarshal(data, &jsonObj); err == nil {
+					verbosePrintf("Valid session.json file found at %s, skipping Telegram API credentials prompt\n", sessionPath)
+					sessionExists = true
+				}
+			}
+		}
+	}
+
+	if !sessionExists && (cfg.TGAPIID == 0 || cfg.TGAPIHash == "" || cfg.PhoneNumber == "") {
 		cfg.TGAPIID, cfg.TGAPIHash, cfg.PhoneNumber = promptTGCredentials()
 	}
 
-	if cfg.TGAPIID == 0 || cfg.TGAPIHash == "" {
+	if sessionExists && cfg.TGAPIID == 0 {
+		cfg.TGAPIID = 1 // placeholder value, see client/client.go
+	}
+	if sessionExists && cfg.TGAPIHash == "" {
+		cfg.TGAPIHash = "placeholder" // placeholder value, see client/client.go	
+  }
+
+	if !sessionExists && (cfg.TGAPIID == 0 || cfg.TGAPIHash == "") {
 		return fmt.Errorf("missing required Telegram credentials. Use flags or provide them when prompted")
 	}
 

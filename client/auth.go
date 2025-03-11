@@ -2,8 +2,12 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"time"
+
+	"akula/config"
 
 	"github.com/gotd/td/telegram/auth"
 	"github.com/gotd/td/tg"
@@ -40,8 +44,36 @@ func (c *Client) SimpleAuth(ctx context.Context) error {
 	authCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
+	hasSession := false
+	if os.Getenv("AKULA_SESSION") != "" {
+		hasSession = true
+	} else {
+		sessionPath := config.GetSessionPath()
+		if _, err := os.Stat(sessionPath); err == nil {
+			data, err := os.ReadFile(sessionPath)
+			if err == nil && len(data) > 10 {
+				var jsonObj any
+				if err := json.Unmarshal(data, &jsonObj); err == nil {
+					hasSession = true
+				}
+			}
+		}
+	}
+
 	err := c.client.Run(authCtx, func(ctx context.Context) error {
 		c.api = c.client.API()
+
+		if hasSession {
+			status, err := c.client.Auth().Status(ctx)
+			if err != nil {
+				return fmt.Errorf("failed to get auth status: %w", err)
+			}
+
+			if status.Authorized {
+				VerbosePrintf("Already authorized using existing session\n")
+				return nil
+			}
+		}
 
 		if err := c.authenticate(ctx); err != nil {
 			return err
@@ -58,4 +90,3 @@ func (c *Client) SimpleAuth(ctx context.Context) error {
 	c.connected = true
 	return nil
 }
-

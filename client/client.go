@@ -2,7 +2,9 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -71,7 +73,48 @@ func VerbosePrintf(format string, a ...interface{}) {
 
 func NewClient(cfg *config.Config) (*Client, error) {
 	sessionStorage := createSessionStorage()
-	client := telegram.NewClient(cfg.TGAPIID, cfg.TGAPIHash, telegram.Options{
+	
+	// Initialize hasSession flag
+	hasSession := false
+
+	// Check for AKULA_SESSION environment variable
+	if os.Getenv("AKULA_SESSION") != "" {
+		hasSession = true
+		VerbosePrintf("Using session from AKULA_SESSION environment variable\n")
+	} else {
+		// Check for existing session file
+		sessionPath := config.GetSessionPath()
+		if _, err := os.Stat(sessionPath); err == nil {
+			data, err := os.ReadFile(sessionPath)
+			if err == nil && len(data) > 10 {
+				var jsonObj any
+				if err := json.Unmarshal(data, &jsonObj); err == nil {
+					hasSession = true
+					VerbosePrintf("Using existing session file: %s\n", sessionPath)
+				}
+			}
+		}
+	}
+
+	// Set API ID and hash values
+	var apiID int
+	var apiHash string
+	
+	// If we have a session, we can use actual placeholder values
+	// The gotd/td library requires these parameters but won't use them for auth with an existing session
+	if hasSession {
+		// Use placeholder values when a session exists
+		apiID = 1           // Placeholder API ID
+		apiHash = "abcdef"  // Placeholder API hash
+		VerbosePrintf("Using existing session for authentication (with placeholder API credentials)\n")
+	} else {
+		// When no session exists, we need the real API credentials
+		apiID = cfg.TGAPIID
+		apiHash = cfg.TGAPIHash
+		VerbosePrintf("No existing session found, will authenticate with API ID and hash\n")
+	}
+
+	client := telegram.NewClient(apiID, apiHash, telegram.Options{
 		SessionStorage: sessionStorage,
 		RetryInterval:  5 * time.Second,
 		MaxRetries:     5,
@@ -85,7 +128,6 @@ func NewClient(cfg *config.Config) (*Client, error) {
 		connected:   false,
 	}, nil
 }
-
 
 func (c *Client) RunSearch(ctx context.Context, channelID int64, searchTerm string, waitTime time.Duration) (string, error) {
 	searchString := searchTerm
@@ -126,4 +168,3 @@ func RunSearch(ctx context.Context, cfg *config.Config, channelID int64, searchT
 
 	return client.RunSearch(ctx, channelID, searchTerm, waitTime)
 }
-
