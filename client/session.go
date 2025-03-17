@@ -1,7 +1,7 @@
 package client
 
 import (
-	"akula/config"
+	"github.com/glpmc/akula/config"
 	"context"
 	"encoding/base64"
 	"encoding/json"

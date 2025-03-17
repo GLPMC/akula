@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"akula/client"
-	"akula/config"
+	"github.com/glpmc/akula/client"
+	"github.com/glpmc/akula/config"
 	"context"
 	"encoding/json"
 	"fmt"

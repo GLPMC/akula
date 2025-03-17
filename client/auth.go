@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"akula/config"
+	"github.com/glpmc/akula/config"
 
 	"github.com/gotd/td/telegram/auth"
 	"github.com/gotd/td/tg"
