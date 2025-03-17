@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"akula/config"
+	"github.com/glpmc/akula/config"
 
 	"github.com/gotd/td/telegram"
 	"github.com/gotd/td/tg"
