@@ -1,6 +1,8 @@
 module akula
 
-go 1.24.1
+go 1.23.3
+
+toolchain go1.24.0
 
 require (
 	github.com/gotd/td v0.120.0
