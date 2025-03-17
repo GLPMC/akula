@@ -1,7 +1,7 @@
 package main
 
 import (
-	"akula/commands"
+	"github.com/glpmc/akula/commands"
 	"fmt"
 	"os"
 )
