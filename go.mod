@@ -1,4 +1,4 @@
-module githib.com/glpmc/akula
+module github.com/glpmc/akula
 
 go 1.23.3
 
